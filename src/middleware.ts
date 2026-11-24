@@ -4,14 +4,24 @@ import { TokenPayload } from '@/types';
 
 const AUTH_COOKIE_NAME = 'minegate_token';
 
-const authSecretEnv = process.env.AUTH_SECRET;
-if (!authSecretEnv || authSecretEnv.length < 32) {
-  throw new Error('FATAL: Variabel lingkungan AUTH_SECRET wajib diisi dan memiliki panjang minimal 32 karakter.');
+function getSecretKey(): Uint8Array {
+  const authSecretEnv = process.env.AUTH_SECRET;
+  if (!authSecretEnv || authSecretEnv.length < 32) {
+    if (
+      process.env.NEXT_PHASE === 'phase-production-build' ||
+      process.env.npm_lifecycle_event === 'build' ||
+      process.env.CI
+    ) {
+      return new TextEncoder().encode('build_fallback_secret_must_be_at_least_32_characters_long');
+    }
+    throw new Error('FATAL: Variabel lingkungan AUTH_SECRET wajib diisi dan memiliki panjang minimal 32 karakter.');
+  }
+  return new TextEncoder().encode(authSecretEnv);
 }
-const secretKey = new TextEncoder().encode(authSecretEnv);
 
 async function verifyEdgeToken(token: string): Promise<TokenPayload | null> {
   try {
+    const secretKey = getSecretKey();
     const { payload } = await jwtVerify(token, secretKey);
     return payload as unknown as TokenPayload;
   } catch {

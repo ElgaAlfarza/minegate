@@ -8,11 +8,25 @@ import { AppError } from './errors';
 export const AUTH_COOKIE_NAME = 'minegate_token';
 export const TOKEN_EXPIRATION_HOURS = 8;
 
-const authSecretEnv = process.env.AUTH_SECRET;
-if (!authSecretEnv || authSecretEnv.length < 32) {
-  throw new Error('FATAL: Variabel lingkungan AUTH_SECRET wajib diisi dan memiliki panjang minimal 32 karakter.');
+/**
+ * Validasi dan ambil kunci rahasia JWT.
+ * Diizinkan fallback sementara HANYA saat fase 'next build' (CI/Vercel static analysis),
+ * namun pada runtime server selalu memvalidasi AUTH_SECRET minimal 32 karakter.
+ */
+function getSecretKey(): Uint8Array {
+  const authSecretEnv = process.env.AUTH_SECRET;
+  if (!authSecretEnv || authSecretEnv.length < 32) {
+    if (
+      process.env.NEXT_PHASE === 'phase-production-build' ||
+      process.env.npm_lifecycle_event === 'build' ||
+      process.env.CI
+    ) {
+      return new TextEncoder().encode('build_fallback_secret_must_be_at_least_32_characters_long');
+    }
+    throw new Error('FATAL: Variabel lingkungan AUTH_SECRET wajib diisi dan memiliki panjang minimal 32 karakter.');
+  }
+  return new TextEncoder().encode(authSecretEnv);
 }
-const secretKey = new TextEncoder().encode(authSecretEnv);
 
 /**
  * Hash password menggunakan bcrypt
@@ -33,6 +47,7 @@ export async function comparePassword(password: string, hash: string): Promise<b
  * Buat JWT token berdurasi 8 jam
  */
 export async function signToken(payload: TokenPayload): Promise<string> {
+  const secretKey = getSecretKey();
   return new SignJWT({ ...payload })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
@@ -45,6 +60,7 @@ export async function signToken(payload: TokenPayload): Promise<string> {
  */
 export async function verifyToken(token: string): Promise<TokenPayload | null> {
   try {
+    const secretKey = getSecretKey();
     const { payload } = await jwtVerify(token, secretKey);
     return payload as unknown as TokenPayload;
   } catch {

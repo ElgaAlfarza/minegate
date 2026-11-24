@@ -9,7 +9,6 @@ import {
   RefreshCw,
   Clock,
   CheckCircle2,
-  AlertTriangle,
   FileSpreadsheet,
 } from 'lucide-react';
 import { GateLog, Vehicle, Driver } from '@/types';
@@ -30,29 +29,31 @@ export default function LogsPage() {
   const [totalCount, setTotalCount] = useState(0);
   const pageSize = 15;
 
-  // Muat master data kendaraan dan driver sekali saat mount
+  // Master data
   useEffect(() => {
     let mounted = true;
     Promise.all([
       fetch('/api/vehicles').then((r) => r.json()),
       fetch('/api/drivers').then((r) => r.json()),
-    ]).then(([resVehicles, resDrivers]) => {
-      if (!mounted) return;
-      if (resVehicles.success && Array.isArray(resVehicles.data)) {
-        const vMap: Record<string, Vehicle> = {};
-        resVehicles.data.forEach((v: Vehicle) => {
-          vMap[v.vehicle_id] = v;
-        });
-        setVehicles(vMap);
-      }
-      if (resDrivers.success && Array.isArray(resDrivers.data)) {
-        const dMap: Record<string, Driver> = {};
-        resDrivers.data.forEach((d: Driver) => {
-          dMap[d.driver_id] = d;
-        });
-        setDrivers(dMap);
-      }
-    }).catch((err) => console.error('Error fetching master data:', err));
+    ])
+      .then(([resVehicles, resDrivers]) => {
+        if (!mounted) return;
+        if (resVehicles.success && Array.isArray(resVehicles.data)) {
+          const vMap: Record<string, Vehicle> = {};
+          resVehicles.data.forEach((v: Vehicle) => {
+            vMap[v.vehicle_id] = v;
+          });
+          setVehicles(vMap);
+        }
+        if (resDrivers.success && Array.isArray(resDrivers.data)) {
+          const dMap: Record<string, Driver> = {};
+          resDrivers.data.forEach((d: Driver) => {
+            dMap[d.driver_id] = d;
+          });
+          setDrivers(dMap);
+        }
+      })
+      .catch((err) => console.error('Error fetching master data:', err));
 
     return () => {
       mounted = false;
@@ -128,13 +129,13 @@ export default function LogsPage() {
         {/* Page Title & Actions */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2.5">
+            <h1 className="text-2xl font-black tracking-tight text-slate-900 flex items-center gap-2.5">
               <span>Riwayat Log Operasional Gate</span>
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-mono bg-amber-500/20 text-amber-400 border border-amber-500/30">
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-mono bg-amber-100 text-amber-800 border border-amber-200 font-bold">
                 {totalCount} Total Data
               </span>
             </h1>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-slate-500 mt-1">
               Data operasional keluar-masuk kendaraan tambang dari Gate 1 (Utama), Gate 2 (Pit), dan Gate 3 (Workshop).
             </p>
           </div>
@@ -143,16 +144,16 @@ export default function LogsPage() {
             <button
               onClick={fetchLogs}
               disabled={isLoading}
-              className="flex items-center gap-2 px-3.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700 transition active:scale-95 disabled:opacity-50"
+              className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold border border-slate-300 shadow-sm transition active:scale-95 disabled:opacity-50"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-amber-600' : ''}`} />
               <span>Muat Ulang</span>
             </button>
 
             <button
               onClick={handleExportCsv}
               disabled={isExporting}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-md shadow-emerald-600/20 transition active:scale-95 disabled:opacity-50"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md shadow-emerald-600/20 transition active:scale-95 disabled:opacity-50"
             >
               <Download className="w-3.5 h-3.5" />
               <span>{isExporting ? 'Mengunduh...' : 'Ekspor Excel (CSV)'}</span>
@@ -162,42 +163,41 @@ export default function LogsPage() {
 
         {/* Metrik Mini Strip */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div className="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800 flex items-center justify-between">
+          <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-sm flex items-center justify-between">
             <div>
-              <div className="text-[11px] text-slate-400 uppercase font-medium">Semua Log</div>
-              <div className="text-xl font-bold text-white font-mono mt-0.5">{totalCount}</div>
+              <div className="text-[10px] text-slate-500 uppercase font-bold">Semua Log</div>
+              <div className="text-2xl font-black text-slate-900 font-mono mt-0.5">{totalCount}</div>
             </div>
             <FileSpreadsheet className="w-5 h-5 text-slate-400" />
           </div>
 
-          <div className="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800 flex items-center justify-between">
+          <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-sm flex items-center justify-between">
             <div>
-              <div className="text-[11px] text-slate-400 uppercase font-medium">Unit di Dalam Area</div>
-              <div className="text-xl font-bold text-amber-400 font-mono mt-0.5">{totalInside}</div>
+              <div className="text-[10px] text-slate-500 uppercase font-bold">Unit di Dalam Area</div>
+              <div className="text-2xl font-black text-amber-600 font-mono mt-0.5">{totalInside}</div>
             </div>
-            <Clock className="w-5 h-5 text-amber-400" />
+            <Clock className="w-5 h-5 text-amber-600" />
           </div>
 
-          <div className="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800 flex items-center justify-between">
+          <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-sm flex items-center justify-between">
             <div>
-              <div className="text-[11px] text-slate-400 uppercase font-medium">Selesai Bertugas</div>
-              <div className="text-xl font-bold text-emerald-400 font-mono mt-0.5">{totalOut}</div>
+              <div className="text-[10px] text-slate-500 uppercase font-bold">Selesai Bertugas</div>
+              <div className="text-2xl font-black text-emerald-600 font-mono mt-0.5">{totalOut}</div>
             </div>
-            <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+            <CheckCircle2 className="w-5 h-5 text-emerald-600" />
           </div>
 
-          <div className="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800 flex items-center justify-between">
+          <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-sm flex items-center justify-between">
             <div>
-              <div className="text-[11px] text-slate-400 uppercase font-medium">Status Koneksi</div>
-              <div className="text-xs font-bold text-emerald-400 font-mono mt-1">Sheets Online</div>
+              <div className="text-[10px] text-slate-500 uppercase font-bold">Status Koneksi</div>
+              <div className="text-xs font-bold text-emerald-600 font-mono mt-1">Sheets Online</div>
             </div>
-            <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
           </div>
         </div>
 
         {/* Filter Bar */}
-        <div className="p-4 rounded-xl bg-slate-950/70 border border-slate-800 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
-          {/* Search Box */}
+        <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
           <div className="relative flex-1">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
@@ -208,20 +208,19 @@ export default function LogsPage() {
                 setSearchTerm(e.target.value);
                 setPage(1);
               }}
-              className="w-full pl-9 pr-4 py-2 bg-slate-900 border border-slate-700/80 rounded-lg text-xs text-white placeholder:text-slate-400 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+              className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-amber-500 focus:bg-white"
             />
           </div>
 
-          {/* Gate Filter */}
           <div className="flex items-center gap-2">
-            <Filter className="w-3.5 h-3.5 text-slate-400" />
+            <Filter className="w-3.5 h-3.5 text-slate-500" />
             <select
               value={gateFilter}
               onChange={(e) => {
                 setGateFilter(e.target.value);
                 setPage(1);
               }}
-              className="bg-slate-900 border border-slate-700/80 text-slate-300 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-amber-500"
+              className="bg-slate-50 border border-slate-300 text-slate-800 text-xs rounded-xl px-3 py-2 font-medium focus:outline-none focus:border-amber-500"
             >
               <option value="ALL">Semua Gate</option>
               <option value="GATE_1_MAIN">Gate 1 (Utama)</option>
@@ -229,14 +228,13 @@ export default function LogsPage() {
               <option value="GATE_3_WORKSHOP">Gate 3 (Workshop)</option>
             </select>
 
-            {/* Status Filter */}
             <select
               value={statusFilter}
               onChange={(e) => {
                 setStatusFilter(e.target.value);
                 setPage(1);
               }}
-              className="bg-slate-900 border border-slate-700/80 text-slate-300 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-amber-500"
+              className="bg-slate-50 border border-slate-300 text-slate-800 text-xs rounded-xl px-3 py-2 font-medium focus:outline-none focus:border-amber-500"
             >
               <option value="ALL">Semua Status</option>
               <option value="INSIDE">INSIDE (Di Dalam)</option>
@@ -246,10 +244,10 @@ export default function LogsPage() {
         </div>
 
         {/* Table Container */}
-        <div className="rounded-xl bg-slate-950/80 border border-slate-800 overflow-hidden shadow-lg">
+        <div className="rounded-2xl bg-white border border-slate-200/90 shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs text-slate-300">
-              <thead className="bg-slate-900/90 text-slate-400 uppercase font-mono text-[11px] border-b border-slate-800">
+            <table className="w-full text-left text-xs text-slate-700">
+              <thead className="bg-slate-50 text-slate-500 uppercase font-mono text-[10px] border-b border-slate-200">
                 <tr>
                   <th className="py-3 px-4">ID Log</th>
                   <th className="py-3 px-4">Unit &amp; Plat</th>
@@ -263,12 +261,12 @@ export default function LogsPage() {
                   <th className="py-3 px-4">Catatan</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60 font-sans">
+              <tbody className="divide-y divide-slate-100 font-sans">
                 {isLoading ? (
                   <tr>
-                    <td colSpan={10} className="py-12 text-center text-slate-400">
+                    <td colSpan={10} className="py-12 text-center text-slate-500">
                       <div className="flex flex-col items-center justify-center gap-2">
-                        <RefreshCw className="w-6 h-6 animate-spin text-amber-500" />
+                        <RefreshCw className="w-6 h-6 animate-spin text-amber-600" />
                         <span>Memuat data dari Google Sheets...</span>
                       </div>
                     </td>
@@ -288,87 +286,79 @@ export default function LogsPage() {
                     return (
                       <tr
                         key={log.log_id}
-                        className={`hover:bg-slate-900/50 transition-colors ${
-                          isInside ? 'bg-amber-950/10' : ''
+                        className={`hover:bg-slate-50 transition-colors ${
+                          isInside ? 'bg-amber-50/40' : ''
                         }`}
                       >
-                        {/* ID Log */}
-                        <td className="py-3 px-4 font-mono text-[11px] font-semibold text-slate-400 whitespace-nowrap">
+                        <td className="py-3 px-4 font-mono text-[11px] font-bold text-slate-500 whitespace-nowrap">
                           {log.log_id}
                         </td>
 
-                        {/* Unit & Plate */}
                         <td className="py-3 px-4 whitespace-nowrap">
                           <div className="flex items-center gap-2">
-                            <span className="font-bold text-white bg-slate-800 px-2 py-0.5 rounded text-[11px] border border-slate-700">
-                              {vehicle?.unit_code || log.vehicle_id}
-                            </span>
-                            <span className="font-mono text-[10px] bg-amber-400/10 text-amber-300 px-1.5 py-0.5 rounded border border-amber-400/20 font-bold">
+                            <span className="font-mono font-black text-white bg-slate-900 px-2 py-0.5 rounded text-[11px] shadow-sm">
                               {vehicle?.plate_number || '-'}
+                            </span>
+                            <span className="font-bold text-slate-800">
+                              {vehicle?.unit_code || log.vehicle_id}
                             </span>
                           </div>
                         </td>
 
-                        {/* Driver */}
                         <td className="py-3 px-4 whitespace-nowrap">
-                          <div className="font-medium text-white">{driver?.name || log.driver_id}</div>
+                          <div className="font-bold text-slate-800">{driver?.name || log.driver_id}</div>
                           <div className="text-[10px] text-slate-400 truncate max-w-[140px]">
                             {driver?.company || vehicle?.owner_company || '-'}
                           </div>
                         </td>
 
-                        {/* Gate */}
                         <td className="py-3 px-4 whitespace-nowrap">
-                          <span className="inline-block px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-slate-800 text-slate-300 border border-slate-700">
+                          <span className="inline-block px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 text-slate-700">
                             {log.gate.replace('GATE_', 'G').replace('_', ' ')}
                           </span>
                         </td>
 
-                        {/* Purpose & Destination */}
                         <td className="py-3 px-4">
-                          <div className="font-semibold text-slate-200 text-xs">{log.purpose}</div>
-                          <div className="text-[11px] text-slate-400 truncate max-w-[180px]">
+                          <div className="font-bold text-slate-800 text-xs">{log.purpose}</div>
+                          <div className="text-[11px] text-slate-500 truncate max-w-[180px]">
                             {log.destination}
                           </div>
                         </td>
 
-                        {/* Time In */}
-                        <td className="py-3 px-4 whitespace-nowrap font-mono text-[11px] text-slate-300">
+                        <td className="py-3 px-4 whitespace-nowrap font-mono text-[11px] text-slate-600">
                           {log.time_in ? log.time_in.replace('T', ' ').slice(5, 19) : '-'}
                         </td>
 
-                        {/* Time Out */}
-                        <td className="py-3 px-4 whitespace-nowrap font-mono text-[11px] text-slate-300">
-                          {log.time_out ? log.time_out.replace('T', ' ').slice(5, 19) : (
-                            <span className="text-amber-400/80 italic font-sans text-xs">Belum keluar</span>
+                        <td className="py-3 px-4 whitespace-nowrap font-mono text-[11px] text-slate-600">
+                          {log.time_out ? (
+                            log.time_out.replace('T', ' ').slice(5, 19)
+                          ) : (
+                            <span className="text-amber-700 font-semibold italic text-xs">Belum keluar</span>
                           )}
                         </td>
 
-                        {/* Odometer */}
                         <td className="py-3 px-4 text-right font-mono text-[11px] whitespace-nowrap">
-                          <div className="text-slate-200 font-semibold">{log.odometer_in.toLocaleString()} km</div>
+                          <div className="text-slate-800 font-bold">{log.odometer_in.toLocaleString()} km</div>
                           {log.odometer_out ? (
-                            <div className="text-emerald-400 text-[10px]">
+                            <div className="text-emerald-700 font-semibold text-[10px]">
                               ➔ {Number(log.odometer_out).toLocaleString()} km
                             </div>
                           ) : null}
                         </td>
 
-                        {/* Status */}
                         <td className="py-3 px-4 text-center whitespace-nowrap">
                           {isInside ? (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold font-mono bg-amber-500/20 text-amber-400 border border-amber-500/40 animate-pulse">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold font-mono bg-amber-100 text-amber-800 border border-amber-300">
                               INSIDE
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold font-mono bg-slate-100 text-slate-700">
                               OUT
                             </span>
                           )}
                         </td>
 
-                        {/* Notes */}
-                        <td className="py-3 px-4 text-slate-400 text-[11px] max-w-[200px] truncate" title={log.notes}>
+                        <td className="py-3 px-4 text-slate-500 text-[11px] max-w-[200px] truncate" title={log.notes}>
                           {log.notes || '-'}
                         </td>
                       </tr>
@@ -380,34 +370,28 @@ export default function LogsPage() {
           </div>
 
           {/* Pagination Bar */}
-          <div className="p-4 border-t border-slate-800 bg-slate-950 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
+          <div className="p-4 border-t border-slate-200 bg-slate-50/70 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
             <div>
-              Menampilkan{' '}
-              <span className="font-semibold text-white">
-                {totalCount > 0 ? (page - 1) * pageSize + 1 : 0}
-              </span>{' '}
-              -{' '}
-              <span className="font-semibold text-white">
-                {Math.min(page * pageSize, totalCount)}
-              </span>{' '}
-              dari <span className="font-semibold text-white">{totalCount}</span> log
+              Menampilkan <span className="font-bold text-slate-900">{totalCount > 0 ? (page - 1) * pageSize + 1 : 0}</span> -{' '}
+              <span className="font-bold text-slate-900">{Math.min(page * pageSize, totalCount)}</span> dari{' '}
+              <span className="font-bold text-slate-900">{totalCount}</span> log
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="px-3 py-1.5 rounded-md bg-slate-900 border border-slate-800 hover:bg-slate-800 disabled:opacity-40 transition text-slate-200"
+                className="px-3 py-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 disabled:opacity-40 transition text-slate-700 font-medium"
               >
                 Sebelumnya
               </button>
-              <span className="px-3 py-1 font-mono text-slate-300">
+              <span className="px-3 py-1 font-mono font-bold text-slate-800">
                 Hal {page} / {totalPages}
               </span>
               <button
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
-                className="px-3 py-1.5 rounded-md bg-slate-900 border border-slate-800 hover:bg-slate-800 disabled:opacity-40 transition text-slate-200"
+                className="px-3 py-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 disabled:opacity-40 transition text-slate-700 font-medium"
               >
                 Selanjutnya
               </button>

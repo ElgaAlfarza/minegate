@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
-import { POST as loginHandler, _resetLoginRateLimit } from '@/app/api/auth/login/route';
+import { POST as loginHandler } from '@/app/api/auth/login/route';
+import { _resetLoginRateLimit } from '@/lib/rateLimit';
 import { GET as usersGetHandler } from '@/app/api/users/route';
 import { userRepo } from '@/lib/repositories/userRepo';
 import * as authModule from '@/lib/auth';

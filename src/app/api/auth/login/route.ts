@@ -4,30 +4,7 @@ import { comparePassword, signToken, setAuthCookie } from '@/lib/auth';
 import { loginSchema } from '@/lib/validations';
 import { AppError, handleApiError, successResponse } from '@/lib/errors';
 
-/**
- * In-Memory Rate Limiter untuk Login (Brute Force Protection)
- *
- * KETERBATASAN:
- * Menggunakan in-memory Map lokal per runtime instance. Pada arsitektur multi-instance /
- * serverless lambdas tanpa shared state, memori tidak disinkronkan antar worker.
- * Untuk produksi skala enterprise, gantikan dengan Redis / Upstash Distributed Rate Limiting.
- */
-interface RateLimitEntry {
-  failedAttempts: number;
-  blockedUntil: number | null;
-}
-
-const loginRateLimits = new Map<string, RateLimitEntry>();
-const MAX_FAILED_ATTEMPTS = 5;
-const BLOCK_DURATION_MS = 15 * 60 * 1000; // 15 menit
-
-export function _resetLoginRateLimit(key?: string) {
-  if (key) {
-    loginRateLimits.delete(key);
-  } else {
-    loginRateLimits.clear();
-  }
-}
+import { loginRateLimits, MAX_FAILED_ATTEMPTS, BLOCK_DURATION_MS } from '@/lib/rateLimit';
 
 function getClientIp(request: NextRequest): string {
   const forwarded = request.headers.get('x-forwarded-for');
